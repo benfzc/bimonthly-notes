@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雙月筆記</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background-color: #2b2b2b;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 20px;
+        }
+
+        /* Left side - Calendar */
+        .calendar-section {
+            flex: 0 0 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .calendar-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 10px;
+        }
+
+        .calendar-nav-button {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: inherit;
+        }
+
+        .calendar-nav-button:hover {
+            background-color: #4a4a4a;
+        }
+
+        .calendar-nav-button:active {
+            background-color: #5a5a5a;
+        }
+
+        .calendar-nav-button.today-button {
+            background-color: #4a90e2;
+            color: #ffffff;
+        }
+
+        .calendar-nav-button.today-button:hover {
+            background-color: #5aa0f2;
+        }
+
+        /* Dropdown menu styles */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .menu-button {
+            background: none;
+            border: none;
+            color: #b0b0b0;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .menu-button:hover {
+            background-color: #4a4a4a;
+            color: #ffffff;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            background-color: #3a3a3a;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            min-width: 120px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        .dropdown-item {
+            padding: 10px 16px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+            border: none;
+            background: none;
+            text-align: left;
+            width: 100%;
+        }
+
+        .dropdown-item:hover {
+            background-color: #4a4a4a;
+        }
+
+        .dropdown-item:first-child {
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+
+        .menu-container {
+            position: relative;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .calendar {
+            background-color: #3a3a3a;
+            border-radius: 6px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 7px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 11px;
+            color: #b0b0b0;
+            padding: 6px 0;
+        }
+
+        .calendar-day {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            line-height: 1;
+            font-weight: 600;
+        }
+
+        .calendar-day-cell:hover {
+            background-color: #4a4a4a;
+        }
+
+        .calendar-day.other-month {
+            color: #666;
+        }
+
+        .calendar-day.weekend {
+            color: #ff9999;
+        }
+
+        .calendar-day-cell:has(.weekend):hover {
+            background-color: rgba(220, 80, 80, 0.25);
+        }
+
+        .calendar-day-cell:has(.weekend) {
+            background-color: rgba(220, 80, 80, 0.15);
+        }
+
+        .calendar-day.today {
+            background-color: #4a90e2;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .calendar-day.today:hover {
+            background-color: #5aa0f2;
+        }
+
+        .calendar-day.today.weekend {
+            background-color: #4a90e2;
+            color: #ffffff;
+        }
+
+
+        .holiday-name {
+            font-size: 9px;
+            color: #ff9999;
+            line-height: 1.2;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0 1px;
+            font-weight: 300;
+            align-self: center;
+        }
+
+        .calendar-day-cell {
+            aspect-ratio: 1;
+            display: grid;
+            grid-template-rows: 1fr 10px;
+            align-items: center;
+            justify-items: center;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            padding: 4px;
+            min-height: 0;
+        }
+
+        .calendar-day-cell > .calendar-day {
+            margin-top: 6px;
+        }
+
+        .calendar-day-cell .calendar-day {
+            aspect-ratio: auto;
+            align-self: center;
+        }
+
+        /* Right side - Notes */
+        .notes-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .notes-textarea {
+            flex: 1;
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            border: none;
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            line-height: 1.6;
+        }
+
+        .notes-textarea:focus {
+            outline: 2px solid #4a90e2;
+            outline-offset: 2px;
+        }
+
+        .notes-textarea::placeholder {
+            color: #888;
+        }
+
+        .save-indicator {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #888;
+            text-align: right;
+        }
+
+        .save-indicator.saved {
+            color: #4a90e2;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+
+            .calendar-section {
+                flex: 1;
+            }
+
+            .calendar {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left side: Calendar -->
+        <div class="calendar-section">
+            <div class="section-header">
+                <div class="section-title">月曆</div>
+                <div class="menu-container">
+                    <button class="menu-button" id="holidayMenuBtn">⋯</button>
+                    <div class="dropdown-menu" id="holidayMenu">
+                        <button class="dropdown-item" id="importHolidayBtn">匯入假日</button>
+                        <button class="dropdown-item" id="exportHolidayBtn">匯出假日</button>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="holidayFileInput" class="file-input" accept=".json">
+            <div class="calendar-controls">
+                <button class="calendar-nav-button" id="prevMonthBtn">← 上個月</button>
+                <button class="calendar-nav-button today-button" id="todayBtn">今天</button>
+                <button class="calendar-nav-button" id="nextMonthBtn">下個月 →</button>
+            </div>
+            <div class="calendar" id="currentMonthCalendar">
+                <div class="calendar-header" id="currentMonthHeader"></div>
+                <div class="calendar-grid" id="currentMonthGrid"></div>
+            </div>
+            <div class="calendar" id="nextMonthCalendar">
+                <div class="calendar-header" id="nextMonthHeader"></div>
+                <div class="calendar-grid" id="nextMonthGrid"></div>
+            </div>
+        </div>
+
+        <!-- Right side: Notes -->
+        <div class="notes-section">
+            <div class="section-header">
+                <div class="section-title">筆記</div>
+                <div class="menu-container">
+                    <button class="menu-button" id="notesMenuBtn">⋯</button>
+                    <div class="dropdown-menu" id="notesMenu">
+                        <button class="dropdown-item" id="importNotesBtn">匯入筆記</button>
+                        <button class="dropdown-item" id="exportNotesBtn">匯出筆記</button>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="notesFileInput" class="file-input" accept=".txt">
+            <textarea
+                class="notes-textarea"
+                id="notesTextarea"
+                placeholder="在此輸入您的筆記..."
+            ></textarea>
+            <div class="save-indicator" id="saveIndicator">已自動儲存</div>
+        </div>
+    </div>
+
+    <script>
+        // Day names in Chinese
+        const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+
+        // Get current date
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        const currentDate = today.getDate();
+
+        // Track displayed month (starts with current month)
+        let displayedYear = currentYear;
+        let displayedMonth = currentMonth;
+
+        // Holiday data storage
+        const HOLIDAY_STORAGE_KEY = 'bimonthlyHolidays';
+        let holidays = {}; // Format: { "2024-01-01": "元旦", ... }
+
+        // Load holidays from localStorage
+        function loadHolidays() {
+            const savedHolidays = localStorage.getItem(HOLIDAY_STORAGE_KEY);
+            if (savedHolidays) {
+                try {
+                    holidays = JSON.parse(savedHolidays);
+                } catch (e) {
+                    console.error('Failed to load holidays:', e);
+                    holidays = {};
+                }
+            }
+        }
+
+        // Save holidays to localStorage
+        function saveHolidays() {
+            localStorage.setItem(HOLIDAY_STORAGE_KEY, JSON.stringify(holidays));
+        }
+
+        // Format date as YYYY-MM-DD
+        function formatDate(year, month, day) {
+            const m = month + 1;
+            return `${year}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+
+        // Get holiday name for a date
+        function getHolidayName(year, month, day) {
+            const dateStr = formatDate(year, month, day);
+            return holidays[dateStr] || null;
+        }
+
+        // Generate calendar for a given month
+        function generateCalendar(year, month, containerId, headerId) {
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            const header = document.getElementById(headerId);
+            header.textContent = `${year}年${month + 1}月`;
+
+            const grid = document.getElementById(containerId);
+            grid.innerHTML = '';
+
+            // Add day headers
+            dayNames.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day-cell';
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                emptyCell.appendChild(emptyDay);
+                grid.appendChild(emptyCell);
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day-cell';
+
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+
+                // Check if it's a weekend (Saturday = 6, Sunday = 0)
+                const date = new Date(year, month, day);
+                const dayOfWeek = date.getDay();
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    dayElement.classList.add('weekend');
+                }
+
+                // Check for holiday
+                const holidayName = getHolidayName(year, month, day);
+                if (holidayName) {
+                    dayElement.classList.add('holiday');
+                    const holidayLabel = document.createElement('div');
+                    holidayLabel.className = 'holiday-name';
+                    holidayLabel.textContent = holidayName;
+                    dayCell.appendChild(dayElement);
+                    dayCell.appendChild(holidayLabel);
+                } else {
+                    dayCell.appendChild(dayElement);
+                }
+
+                // Highlight today
+                if (year === currentYear && month === currentMonth && day === currentDate) {
+                    dayElement.classList.add('today');
+                }
+
+                grid.appendChild(dayCell);
+            }
+
+            // Fill remaining cells to complete the grid
+            const totalCells = grid.children.length;
+            const remainingCells = 42 - totalCells; // 6 rows * 7 days
+            for (let i = 0; i < remainingCells; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day-cell';
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                emptyCell.appendChild(emptyDay);
+                grid.appendChild(emptyCell);
+            }
+        }
+
+        // Generate calendars for displayed month and next month
+        function updateCalendars() {
+            generateCalendar(displayedYear, displayedMonth, 'currentMonthGrid', 'currentMonthHeader');
+
+            const nextMonth = displayedMonth + 1;
+            const nextYear = nextMonth > 11 ? displayedYear + 1 : displayedYear;
+            generateCalendar(nextYear, nextMonth % 12, 'nextMonthGrid', 'nextMonthHeader');
+        }
+
+        // Navigate to previous month
+        function goToPreviousMonth() {
+            displayedMonth--;
+            if (displayedMonth < 0) {
+                displayedMonth = 11;
+                displayedYear--;
+            }
+            updateCalendars();
+        }
+
+        // Navigate to next month
+        function goToNextMonth() {
+            displayedMonth++;
+            if (displayedMonth > 11) {
+                displayedMonth = 0;
+                displayedYear++;
+            }
+            updateCalendars();
+        }
+
+        // Navigate to today
+        function goToToday() {
+            displayedYear = currentYear;
+            displayedMonth = currentMonth;
+            updateCalendars();
+        }
+
+        // Load holidays from JSON data (overwrite mode)
+        function loadHolidayData(jsonData) {
+            try {
+                const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+
+                if (data.holidays && Array.isArray(data.holidays)) {
+                    // Overwrite existing holidays
+                    holidays = {};
+                    data.holidays.forEach(holiday => {
+                        if (holiday.date && holiday.name) {
+                            holidays[holiday.date] = holiday.name;
+                        }
+                    });
+                    saveHolidays();
+                    updateCalendars();
+                    alert('假日資料載入成功！');
+                } else {
+                    alert('假日資料格式錯誤，請確認 JSON 格式正確。\n格式範例：\n{"holidays": [{"date": "2024-01-01", "name": "元旦"}]}');
+                }
+            } catch (e) {
+                alert('載入失敗：' + e.message);
+            }
+        }
+
+        // Export holidays to JSON file
+        function exportHolidays() {
+            const holidaysArray = Object.keys(holidays).map(date => ({
+                date: date,
+                name: holidays[date]
+            }));
+
+            const data = {
+                holidays: holidaysArray
+            };
+
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            a.href = url;
+            a.download = `holidays-${dateStr}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Dropdown menu handlers
+        function setupDropdown(menuBtnId, menuId) {
+            const menuBtn = document.getElementById(menuBtnId);
+            const menu = document.getElementById(menuId);
+
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close other menus
+                document.querySelectorAll('.dropdown-menu').forEach(m => {
+                    if (m.id !== menuId) m.classList.remove('show');
+                });
+                menu.classList.toggle('show');
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!menu.contains(e.target) && !menuBtn.contains(e.target)) {
+                    menu.classList.remove('show');
+                }
+            });
+        }
+
+        // Handle holiday file upload
+        document.getElementById('holidayFileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (confirm('將覆蓋現有假日資料，確定嗎？')) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        loadHolidayData(event.target.result);
+                    };
+                    reader.onerror = () => {
+                        alert('讀取檔案失敗');
+                    };
+                    reader.readAsText(file);
+                }
+                e.target.value = ''; // Reset file input
+            }
+        });
+
+        // Notes functionality
+        const notesTextarea = document.getElementById('notesTextarea');
+        const saveIndicator = document.getElementById('saveIndicator');
+        const STORAGE_KEY = 'bimonthlyNotes';
+
+        // Load notes from localStorage
+        function loadNotes() {
+            const savedNotes = localStorage.getItem(STORAGE_KEY);
+            if (savedNotes) {
+                notesTextarea.value = savedNotes;
+            }
+        }
+
+        // Save notes to localStorage
+        function saveNotes() {
+            const notes = notesTextarea.value;
+            localStorage.setItem(STORAGE_KEY, notes);
+            saveIndicator.textContent = '已自動儲存';
+            saveIndicator.classList.add('saved');
+
+            setTimeout(() => {
+                saveIndicator.classList.remove('saved');
+            }, 2000);
+        }
+
+        // Auto-save on input (with debounce)
+        let saveTimeout;
+        notesTextarea.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            saveIndicator.textContent = '儲存中...';
+            saveTimeout = setTimeout(saveNotes, 500);
+        });
+
+        // Export notes to text file
+        function exportNotes() {
+            const notes = notesTextarea.value;
+            if (!notes.trim()) {
+                alert('沒有筆記內容可匯出');
+                return;
+            }
+
+            const blob = new Blob([notes], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            a.href = url;
+            a.download = `notes-${dateStr}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Import notes from file
+        function importNotes(file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                if (confirm('將覆蓋現有筆記，確定嗎？')) {
+                    notesTextarea.value = event.target.result;
+                    saveNotes();
+                    alert('筆記匯入成功！');
+                }
+            };
+            reader.onerror = () => {
+                alert('讀取檔案失敗');
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // Handle notes file upload
+        document.getElementById('notesFileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                importNotes(file);
+                e.target.value = ''; // Reset file input
+            }
+        });
+
+        // Setup dropdown menus
+        setupDropdown('holidayMenuBtn', 'holidayMenu');
+        setupDropdown('notesMenuBtn', 'notesMenu');
+
+        // Holiday menu actions
+        document.getElementById('importHolidayBtn').addEventListener('click', () => {
+            document.getElementById('holidayFileInput').click();
+            document.getElementById('holidayMenu').classList.remove('show');
+        });
+
+        document.getElementById('exportHolidayBtn').addEventListener('click', () => {
+            if (Object.keys(holidays).length === 0) {
+                alert('沒有假日資料可匯出');
+            } else {
+                exportHolidays();
+            }
+            document.getElementById('holidayMenu').classList.remove('show');
+        });
+
+        // Notes menu actions
+        document.getElementById('importNotesBtn').addEventListener('click', () => {
+            document.getElementById('notesFileInput').click();
+            document.getElementById('notesMenu').classList.remove('show');
+        });
+
+        document.getElementById('exportNotesBtn').addEventListener('click', () => {
+            exportNotes();
+            document.getElementById('notesMenu').classList.remove('show');
+        });
+
+        // Bind navigation buttons
+        document.getElementById('prevMonthBtn').addEventListener('click', goToPreviousMonth);
+        document.getElementById('nextMonthBtn').addEventListener('click', goToNextMonth);
+        document.getElementById('todayBtn').addEventListener('click', goToToday);
+
+        // Initialize
+        loadHolidays();
+        updateCalendars();
+        loadNotes();
+    </script>
+</body>
+</html>
+
