@@ -4,6 +4,8 @@
 
 一個輕量級的單一 HTML 檔案月曆應用程式，同時顯示兩個月份並支援筆記功能。
 
+**[立即使用](https://benfzc.github.io/bimonthly-notes/)**
+
 ## 功能特色
 
 - **雙月顯示**：垂直排列顯示本月與下月月曆
@@ -56,6 +58,8 @@ MIT License
 # Bimonthly Notes
 
 A lightweight single-file calendar app displaying two months at once with integrated note-taking.
+
+**[Use it here!](https://benfzc.github.io/bimonthly-notes/)**
 
 ## Features
 
